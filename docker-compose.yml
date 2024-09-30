@@ -1,0 +1,103 @@
+services:
+  zookeeper:
+    restart: always
+    image: 'bitnami/zookeeper:latest'
+    container_name: zookeeper
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    ports:
+      - '2181:2181'
+    volumes:
+      - 'zookeeper-volume:/bitnami'
+
+  kafka:
+    restart: always
+    image: 'bitnami/kafka:latest'
+    container_name: kafka
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=CLIENT://:9092,EXTERNAL://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka:9092,EXTERNAL://localhost:9093
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=CLIENT
+    ports:
+      - '9093:9093'
+    depends_on:
+      - zookeeper
+    volumes:
+      - 'kafka-volume:/bitnami'
+
+  kafka-ui:
+    image: 'provectuslabs/kafka-ui:latest'
+    container_name: kafka-ui
+    ports:
+      - '8080:8080'
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    depends_on:
+      - kafka
+
+  postgres_db:
+    image: postgres:alpine
+    container_name: books-store-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_DB}
+    ports:
+      - '${DATABASE_PORT}:${DATABASE_PORT}'
+    volumes:
+      - postgres_volume:/var/lib/postgresql/data
+
+  gateway-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - APP_NAME=gateway-app
+    container_name: gateway-app
+    restart: always
+    ports:
+      - '${GATEWAY_APP_PORT}:${GATEWAY_APP_PORT}'
+    expose:
+      - ${GATEWAY_APP_PORT}
+    env_file:
+      - .env
+
+  orders-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - APP_NAME=orders-app
+    container_name: orders-app
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - postgres_db
+      - kafka
+
+  states-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - APP_NAME=states-app
+    container_name: states-app
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - postgres_db
+      - kafka
+
+volumes:
+  kafka-volume:
+  zookeeper-volume:
+  postgres_volume:
