@@ -1,5 +1,5 @@
 import { EnvConfigModule } from '@app/env-config'
-import { Module, OnModuleInit } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 
 import { DatabaseModule } from './database/database.module'
 import { OrdersAppController } from './orders-app.controller'
@@ -14,10 +14,4 @@ import { UsersModule } from './users/users.module'
   controllers: [OrdersAppController],
   providers: [OrdersAppService, SeederService]
 })
-export class OrdersAppModule implements OnModuleInit {
-  constructor(private readonly seederService: SeederService) {}
-
-  onModuleInit() {
-    this.seederService.seed()
-  }
-}
+export class OrdersAppModule {}

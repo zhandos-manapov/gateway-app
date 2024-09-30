@@ -4,10 +4,14 @@ import { NestFactory } from '@nestjs/core'
 import { MicroserviceOptions, Transport } from '@nestjs/microservices'
 
 import { OrdersAppModule } from './orders-app.module'
+import { SeederService } from './seeder/seeder.service'
 
 async function bootstrap() {
   const app = await NestFactory.create(OrdersAppModule)
   const configService = app.get(ConfigService<EnvironmentVariables>)
+
+  const seederService = app.get(SeederService)
+  await seederService.seed()
 
   const environment = configService.get<string>('ORDERS_APP_ENV')
   const kafkaBrokerUrl = configService.get<string>('KAFKA_BROKER_URL')
