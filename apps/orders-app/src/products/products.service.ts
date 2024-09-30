@@ -14,6 +14,10 @@ export class ProductsService {
     return await this.productRepository.findOneBy({ id })
   }
 
+  async findOneByName(name: string) {
+    return await this.productRepository.findOneBy({ name })
+  }
+
   findAll() {
     return this.productRepository.find()
   }

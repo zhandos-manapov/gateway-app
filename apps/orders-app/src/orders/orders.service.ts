@@ -1,12 +1,12 @@
-import { Repository } from 'typeorm'
+import { DeepPartial, Repository } from 'typeorm'
 
+import { CreateOrderDto, UpdateOrderDto } from '@app/contracts/orders-app'
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 
 import { ProductsService } from '../products/products.service'
 import { UsersService } from '../users/users.service'
 import { OrderEntity } from './entities'
-import { CreateOrderDto, UpdateOrderDto } from '@app/contracts/orders-app'
 
 @Injectable()
 export class OrdersService {
@@ -27,6 +27,15 @@ export class OrdersService {
     })
 
     return await this.orderRepository.save(orderEntity)
+  }
+
+  async saveEntity(order: OrderEntity) {
+    const orderEntity = this.orderRepository.create(order)
+    return await this.orderRepository.save(orderEntity)
+  }
+
+  getEntity(order: DeepPartial<OrderEntity>) {
+    return this.orderRepository.create(order)
   }
 
   async findAll() {

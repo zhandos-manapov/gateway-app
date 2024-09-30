@@ -14,6 +14,10 @@ export class UsersService {
     return this.userRepository.findOneBy({ id })
   }
 
+  async findOneByFirstNameAndLastName(firstName: string, lastName: string) {
+    return await this.userRepository.findOneBy({ firstName, lastName })
+  }
+
   findAll() {
     return this.userRepository.find()
   }

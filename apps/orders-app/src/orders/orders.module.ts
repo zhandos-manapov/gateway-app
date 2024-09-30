@@ -10,6 +10,7 @@ import { ProductsModule } from '../products/products.module'
 @Module({
   imports: [TypeOrmModule.forFeature([OrderEntity]), UsersModule, ProductsModule],
   controllers: [OrdersController],
-  providers: [OrdersService]
+  providers: [OrdersService],
+  exports: [OrdersService]
 })
 export class OrdersModule {}

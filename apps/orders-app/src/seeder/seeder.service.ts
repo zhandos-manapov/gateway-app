@@ -1,11 +1,10 @@
-import { Repository } from 'typeorm'
-
 import { Injectable } from '@nestjs/common'
-import { InjectRepository } from '@nestjs/typeorm'
 
-import { OrderEntity } from '../orders/entities'
+import { OrdersService } from '../orders/orders.service'
 import { ProductEntity } from '../products/entities'
+import { ProductsService } from '../products/products.service'
 import { UserEntity } from '../users/entities'
+import { UsersService } from '../users/users.service'
 
 const userPayload = {
   firstName: 'Zhandos',
@@ -19,9 +18,9 @@ const productPayload = {
 @Injectable()
 export class SeederService {
   constructor(
-    @InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>,
-    @InjectRepository(ProductEntity) private readonly productRepository: Repository<ProductEntity>,
-    @InjectRepository(OrderEntity) private readonly orderRepository: Repository<OrderEntity>
+    private readonly usersService: UsersService,
+    private readonly productsService: ProductsService,
+    private readonly ordersService: OrdersService
   ) {}
 
   async seed() {
@@ -31,32 +30,30 @@ export class SeederService {
   }
 
   private async seedUser() {
-    const userExists = await this.userRepository.findOneBy({
-      firstName: userPayload.firstName,
-      lastName: userPayload.lastName
-    })
+    const userExists = await this.usersService.findOneByFirstNameAndLastName(
+      userPayload.firstName,
+      userPayload.lastName
+    )
 
     if (!userExists) {
-      const user = this.userRepository.create(userPayload)
-      return await this.userRepository.save(user)
+      return await this.usersService.create(userPayload)
     } else {
       return userExists
     }
   }
 
   private async seedProduct() {
-    const productExists = await this.productRepository.findOneBy({ name: productPayload.name })
+    const productExists = await this.productsService.findOneByName(productPayload.name)
 
     if (!productExists) {
-      const product = this.productRepository.create(productPayload)
-      return await this.productRepository.save(product)
+      return await this.productsService.create(productPayload)
     } else {
       return productExists
     }
   }
 
   private async seedOrder(client: UserEntity, product: ProductEntity, quantity: number) {
-    const order = this.orderRepository.create({ client, product, quantity })
-    await this.orderRepository.save(order)
+    const order = this.ordersService.getEntity({ client, product, quantity })
+    await this.ordersService.saveEntity(order)
   }
 }
